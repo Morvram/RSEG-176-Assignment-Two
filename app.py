@@ -1,4 +1,4 @@
-from flask import Flask, flash, render_template, send_file, request, session, url_for, flash, send_file
+from flask import Flask, flash, render_template, send_file, request, session, url_for, flash, send_file, redirect
 from flask_session import Session
 from flask_uploads import UploadSet, configure_uploads
 from flask_wtf import FlaskForm
@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 import os
 from wtforms.validators import InputRequired
 from documentConversion import convertDoc, removeWatermark
-from helpers import login_required
+from helpers import login_required #TODO this package won't import. Resolve that.
 
 application = app = Flask(__name__)
 application.config['SECRET_KEY'] = 'supersecretkey'
@@ -56,11 +56,34 @@ def login():
         if not request.form.get("password"):
             return apology("Must provide password.")
         
+        #Protects the app from SQL injection attacks.
+        if "'" in request.form.get("username") or ";" in request.form.get("username") or "'" in request.form.get("password") or ";" in request.form.get("password"):
+            return apology("No SQL injection, please!")
+        
+        #Query database for username.
+        #TODO actually create the database lol
+        # Query database for username
+        rows = db.execute("SELECT * FROM users WHERE username = :username",
+                          username=request.form.get("username"))
+                          
+        # Ensure username exists and password is correct
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+            return apology("invalid username and/or password", 403)    
+
+        # Remember which user has logged in
+        session["user_id"] = rows[0]["id"]
+        session["user_name"] = rows[0]["username"]
+
+        # Redirect user to home page
+        return redirect("/")
+
+    else:
+        return render_template("login.html")
         
             
 def apology(message):
     flash(message)
-    return render_template("index.html", form=form)
+    return redirect("/")
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0', debug=True, port=8080)
