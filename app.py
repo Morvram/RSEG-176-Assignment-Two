@@ -1,4 +1,5 @@
 from flask import Flask, flash, render_template, send_file, request, session, url_for, flash, send_file, redirect
+from flask_login import LoginManager
 from flask_session import Session
 from flask_uploads import UploadSet, configure_uploads
 from flask_wtf import FlaskForm
@@ -7,7 +8,7 @@ from werkzeug.utils import secure_filename
 import os
 from wtforms.validators import InputRequired
 from documentConversion import convertDoc, removeWatermark
-from helpers import login_required #TODO this package won't import. Resolve that.
+from tempfile import mkdtemp
 
 application = app = Flask(__name__)
 application.config['SECRET_KEY'] = 'supersecretkey'
@@ -18,13 +19,18 @@ application.config['SESSION_PERMANENT'] = False
 application.config['SESSION_TYPE'] = 'filesystem'
 Session(application)
 
+#Login Manager
+login_manager = LoginManager()
+login_manager.login_view = "users.login"
+login_manager.init_app(app)
+
 class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Upload File")
 
 @application.route('/', methods=['GET',"POST"])
 @application.route('/home', methods=['GET',"POST"])
-#TODO require login.
+@login_required
 def home():
     form = UploadFileForm()
     if form.validate_on_submit():
