@@ -21,8 +21,9 @@ application.config['SESSION_TYPE'] = 'filesystem'
 Session(application)
 
 
-db = SQLAlchemy(app)
 application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite"
+db = SQLAlchemy(app)
+
 
 #TODO create User class (https://realpython.com/using-flask-login-for-user-management-with-flask/)
 class User(db.Model):
