@@ -9,6 +9,7 @@ import os
 from wtforms.validators import InputRequired
 from documentConversion import convertDoc, removeWatermark
 from tempfile import mkdtemp
+from flask_sqlalchemy import SQLAlchemy
 
 application = app = Flask(__name__)
 application.config['SECRET_KEY'] = 'supersecretkey'
@@ -20,7 +21,28 @@ application.config['SESSION_TYPE'] = 'filesystem'
 Session(application)
 
 
+db = SQLAlchemy(app)
+application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite"
+
 #TODO create User class (https://realpython.com/using-flask-login-for-user-management-with-flask/)
+class User(db.Model):
+    __tablename__ = 'user'
+    
+    user = db.Column(db.String, primary_key=True)
+    password = db.Column(db.String)
+    authentication = db.Column(db.Boolean, default=False)
+    
+    def is_active(self):
+        return True
+        
+    def get_id(self):
+        return self.user
+        
+    def is_authenticated(self):
+        return self.authentication
+    
+    def is_anonymous(self):
+        return False
 
 
 
