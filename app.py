@@ -1,5 +1,5 @@
 from flask import Flask, flash, render_template, send_file, request, session, url_for, flash, send_file, redirect
-from flask_login import LoginManager
+from flask_login import LoginManager, login_required
 from flask_session import Session
 from flask_uploads import UploadSet, configure_uploads
 from flask_wtf import FlaskForm
@@ -19,10 +19,18 @@ application.config['SESSION_PERMANENT'] = False
 application.config['SESSION_TYPE'] = 'filesystem'
 Session(application)
 
+
+#TODO create User class (https://realpython.com/using-flask-login-for-user-management-with-flask/)
+
+
+
 #Login Manager
 login_manager = LoginManager()
-login_manager.login_view = "users.login"
+login_manager.login_view = "/login"
 login_manager.init_app(app)
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
 class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
@@ -47,7 +55,7 @@ def home():
         #return "File has been uploaded. <a href='/'>Return to Index </a>"
     return render_template('index.html', form=form)
     
-@app.route("/login", methods=["GET", "POST"])
+@application.route("/login", methods=["GET", "POST"])
 def login():
     #Forget any user_id
     
@@ -55,37 +63,31 @@ def login():
     
     #User reached route by posting (submitting the login form):
     if request.method == "POST":
-        #Ensure username was submitted
+        
+        #Using request form input to generate user
+        
+        #Ensure username and password were submitted, and protect from SQL injection attacks.
         if not request.form.get("username"):
             return apology("Must provide username.")
-        #Ensure password was submitted
         if not request.form.get("password"):
             return apology("Must provide password.")
-        
-        #Protects the app from SQL injection attacks.
         if "'" in request.form.get("username") or ";" in request.form.get("username") or "'" in request.form.get("password") or ";" in request.form.get("password"):
             return apology("No SQL injection, please!")
+            
+        user = User.objects(name=usenrame, password=password).first()
         
-        #Query database for username.
-        #TODO actually create the database lol
-        # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = :username",
-                          username=request.form.get("username"))
-                          
-        # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return apology("invalid username and/or password", 403)    
-
-        # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
-        session["user_name"] = rows[0]["username"]
-
-        # Redirect user to home page
-        return redirect("/")
+        if user:
+            login_user(user)
+            return redirect("/")
+        else:
+            return apology("Login not successful.")
+        
 
     else:
         return render_template("login.html")
-        
+ 
+
+#TODO create register method which creates an account and stores its User object in db. 
             
 def apology(message):
     flash(message)
