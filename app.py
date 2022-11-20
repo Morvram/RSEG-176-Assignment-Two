@@ -9,7 +9,9 @@ import os
 from wtforms.validators import InputRequired
 from documentConversion import convertDoc, removeWatermark
 from tempfile import mkdtemp
-from flask_sqlalchemy import SQLAlchemy
+#from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 application = app = Flask(__name__)
 application.config['SECRET_KEY'] = 'supersecretkey'
