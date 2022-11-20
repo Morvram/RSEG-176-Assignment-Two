@@ -74,7 +74,7 @@ def login():
         if "'" in request.form.get("username") or ";" in request.form.get("username") or "'" in request.form.get("password") or ";" in request.form.get("password"):
             return apology("No SQL injection, please!")
             
-        user = User.objects(name=usenrame, password=password).first()
+        user = User.objects(name=username, password=password).first()
         
         if user:
             login_user(user)
