@@ -12,6 +12,7 @@ from tempfile import mkdtemp
 #from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from passlib.hash import sha256_crypt
 
 application = app = Flask(__name__)
 application.config['SECRET_KEY'] = 'supersecretkey'
@@ -23,7 +24,9 @@ application.config['SESSION_TYPE'] = 'filesystem'
 Session(application)
 
 
-application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite"
+#application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite"
+engine = create_engine("mysql+pymysql://" + open("userpass.txt", "r").readlines()[0] + "@localhost/register")
+
 db = SQLAlchemy(app)
 
 
