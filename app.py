@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 import os
 from wtforms.validators import InputRequired
 from documentConversion import convertDoc, removeWatermark
-from helpers import login_required #TODO this package won't import. Resolve that.
+from tempfile import mkdtemp
 
 application = app = Flask(__name__)
 application.config['SECRET_KEY'] = 'supersecretkey'
