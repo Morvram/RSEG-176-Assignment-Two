@@ -28,12 +28,16 @@ class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Upload File")
     
+    
+login_manager = LoginManager(application)
+login_manager.init_app(application)
+
 
 @application.route('/', methods=['GET',"POST"])
-#@login_required
+@login_required
 def home():
     if request.method == "POST":
-        form = UploadFileForm()
+        #form = UploadFileForm()
         if form.validate_on_submit():
             file = form.file.data # First grab the file
             print(file.filename) #just to demonstrate
@@ -46,8 +50,11 @@ def home():
             print(outpath)
             return send_file(outpath.replace(" ","_"))
             #return "File has been uploaded. <a href='/'>Return to Index </a>"
-    return render_template("index.html", form=form)
+    return render_template("index.html", form=UploadFileForm())
     
+#@application.route("/upload", methods=["POST"])
+#def upload():
+#    file = form.file.data
     
 @application.route("/login", methods=["GET", "POST"])
 def login():
