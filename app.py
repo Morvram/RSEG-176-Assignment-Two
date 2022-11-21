@@ -30,6 +30,11 @@ class UploadFileForm(FlaskForm):
     
 @application.route('/', methods=['GET',"POST"])
 def home():
+    try:
+        if session["log"] == False:
+            return apology("Please log in.")
+    except: #session['log'] doesn't exist.
+        return apology("Please log in.")
     if request.method == "POST":
         form = UploadFileForm()
         if form.validate_on_submit():
@@ -51,8 +56,8 @@ def home():
 def login():
     #Forget any user_id
     
-    session.clear()
-    print("Cleared session.")
+    #session.clear()
+    #print("Cleared session.")
     
     #User reached route by posting (submitting the login form):
     if request.method == "POST":
@@ -78,7 +83,6 @@ def login():
                     session["user_name"] = username
                     print("Logged in.")
                     flash("You are now logged in!")
-                    #TODO make it so that @login_required KNOWS you are logged in.
                     return render_template("index.html", form=UploadFileForm())
                 else:
                     flash("Incorrect password", "danger")
