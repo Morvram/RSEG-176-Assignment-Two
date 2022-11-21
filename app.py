@@ -72,6 +72,10 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
         
+        #Protect from SQL injection attacks.
+        if "'" in request.form.get("username") or ";" in request.form.get("username") or "'" in request.form.get("password") or ";" in request.form.get("password"):
+            return apology("No SQL injection, please!")
+        
         usernamedata=cur.execute("SELECT username FROM users WHERE username=:username",{"username":username}).fetchone()
         passworddata=cur.execute("SELECT password FROM users WHERE username=:username",{"username":username}).fetchone()
         
@@ -100,6 +104,11 @@ def register():
         username=request.form.get("username")
         password=request.form.get("password")
         confirm=request.form.get("confirmation")
+        
+        #Protect from SQL injection attacks.
+        if "'" in request.form.get("username") or ";" in request.form.get("username") or "'" in request.form.get("password") or ";" in request.form.get("password"):
+            return apology("No SQL injection, please!")
+            
         print("Confirmed data received from form.")
         secure_password=sha256_crypt.hash(str(password))
         print("Created secure password.")
