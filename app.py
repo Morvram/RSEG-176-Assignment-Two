@@ -9,9 +9,7 @@ import os
 from wtforms.validators import InputRequired
 from documentConversion import convertDoc, removeWatermark
 from tempfile import mkdtemp
-#from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+import sqlite3
 from passlib.hash import sha256_crypt
 
 application = app = Flask(__name__)
@@ -23,23 +21,8 @@ application.config['SESSION_PERMANENT'] = False
 application.config['SESSION_TYPE'] = 'filesystem'
 Session(application)
 
-
-#application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite"
-#engine = create_engine("mysql+pymysql://" + open("userpass.txt", "r").readlines()[0] + "@18.212.177.201:8080//register")
-engine = create_engine("".join(["sqlite+pysqlite:///", os.getcwd(), "/register"]), echo=True)
-db = scoped_session(sessionmaker(bind=engine))
-#db = SQLAlchemy(app)
-
-
-#Create users table in database.
-if not engine.has_table("users"):
-    print("Doesn't have users table!")
-    #TODO replace this with a SQL statement that creates the users table.
-    db.execute("""CREATE TABLE register.users(
-        username STRING PRIMARY KEY NOT NULL,
-        password STRING NOT NULL
-    );""")
-    #TODO then check that this actually creates a db file in the proper location in the filesystem.
+con = sqlite3.connect("register.db", check_same_thread=False)
+cur = con.cursor()
 
 
 #Login Manager
@@ -55,23 +38,27 @@ class UploadFileForm(FlaskForm):
     submit = SubmitField("Upload File")
 
 @application.route('/', methods=['GET',"POST"])
-@application.route('/home', methods=['GET',"POST"])
 @login_required
 def home():
     form = UploadFileForm()
-    if form.validate_on_submit():
-        file = form.file.data # First grab the file
-        print(file.filename) #just to demonstrate
-        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)),application.config['UPLOAD_FOLDER'],secure_filename(file.filename))) # Then save the file
-        #Process file.
-        path = "Static/Files/"+file.filename
-        print(path)
-        convertDoc(path.replace(" ", "_"), ".docx")
-        outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
-        print(outpath)
-        return send_file(outpath.replace(" ","_"))
-        #return "File has been uploaded. <a href='/'>Return to Index </a>"
-    return render_template('index.html', form=form)
+    try:
+        if form.validate_on_submit():
+            file = form.file.data # First grab the file
+            print(file.filename) #just to demonstrate
+            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)),application.config['UPLOAD_FOLDER'],secure_filename(file.filename))) # Then save the file
+            #Process file.
+            path = "Static/Files/"+file.filename
+            print(path)
+            convertDoc(path.replace(" ", "_"), ".docx")
+            outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
+            print(outpath)
+            return send_file(outpath.replace(" ","_"))
+            #return "File has been uploaded. <a href='/'>Return to Index </a>"
+        else:
+            return render_template("index.html", form=form)
+    except:
+        return render_template('index.html', form=form)
+    
     
 @application.route("/login", methods=["GET", "POST"])
 def login():
@@ -85,20 +72,23 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
         
-        usernamedata=db.execute("SELECT username FROM users WHERE username=:username",{"username":username}).fetchone()
-        passworddata=db.execute("SELECT password FROM users WHERE username=:username",{"username":username}).fetchone()
+        usernamedata=cur.execute("SELECT username FROM users WHERE username=:username",{"username":username}).fetchone()
+        passworddata=cur.execute("SELECT password FROM users WHERE username=:username",{"username":username}).fetchone()
         
         if usernamedata is None:
             flash("No username", "danger")
             return render_template("login.html")
         else:
             for passwor_data in passworddata:
-                if hsa256_crypt.verify(password, passwor_data):
+                if sha256_crypt.verify(password, passwor_data):
                     session["log"]=True
-                    
+                    print("Logged in.")
                     flash("You are now logged in!")
+                    #TODO make it so that @login_required KNOWS you are logged in.
+                    return render_template("index.html", form=UploadFileForm())
                 else:
                     flash("Incorrect password", "danger")
+                    print("Not logged in.")
                     return render_template("login.html")
     return render_template("login.html")
  
@@ -107,27 +97,31 @@ def login():
 @app.route("/register",methods=['POST','GET'])
 def register():
     if request.method=="POST":
-        name=request.form.get("name")
         username=request.form.get("username")
         password=request.form.get("password")
-        confirm=request.form.get("confirm")
-        secure_password=sha256_crypt.encrypt(str(password))
-        
-        usernamedata=db.execute("SELECT username FROM users WHERE username=:username",{"username":username}).fetchone()
+        confirm=request.form.get("confirmation")
+        print("Confirmed data received from form.")
+        secure_password=sha256_crypt.hash(str(password))
+        print("Created secure password.")
+        usernamedata=cur.execute("SELECT username FROM users WHERE username=:username",{"username":username}).fetchone()
+        print("Retrieved usernamedata.")
         #usernamedata=str(usernamedata)
-        if usernamedata==None:
+        if usernamedata is None:
             if password==confirm:
-                db.execute("INSERT INTO users(name,username,password) VALUES(:name,:username,:password)",
-        {"name":name,"username":username,"password":secure_password})
-                db.commit()
+                cur.execute("INSERT INTO users(username,password) VALUES(:username,:password)",
+        {"username":username,"password":secure_password})
+                con.commit()
+                print("Committed new user to database.")
                 flash("You are registered and can now login","success")
-                return redirect(url_for('login'))
+                return redirect("/login")
             else:
+                print("Password mismatch.")
                 flash("password does not match","danger")
                 return render_template('register.html')
         else:
+            print("User already existed.")
             flash("user already existed, please login or contact admin","danger")
-            return redirect(url_for('login'))
+            return redirect("/login")
         
     return render_template('register.html')
 
