@@ -28,18 +28,7 @@ class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Upload File")
     
-from functools import wraps
-
-def check_logged(function): #https://stackoverflow.com/questions/63414414/how-to-create-a-decorator-in-flask
-    @wraps(function)
-    def decorated_function(*args, **kwargs):
-        if session["log"]==True:
-            return function(*args, **kwargs)
-        else:
-            return redirect(url_for('application.login'))
-
 @application.route('/', methods=['GET',"POST"])
-@check_logged
 def home():
     if request.method == "POST":
         form = UploadFileForm()
