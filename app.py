@@ -41,23 +41,19 @@ class UploadFileForm(FlaskForm):
 @login_required
 def home():
     form = UploadFileForm()
-    try:
-        if form.validate_on_submit():
-            file = form.file.data # First grab the file
-            print(file.filename) #just to demonstrate
-            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)),application.config['UPLOAD_FOLDER'],secure_filename(file.filename))) # Then save the file
-            #Process file.
-            path = "Static/Files/"+file.filename
-            print(path)
-            convertDoc(path.replace(" ", "_"), ".docx")
-            outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
-            print(outpath)
-            return send_file(outpath.replace(" ","_"))
-            #return "File has been uploaded. <a href='/'>Return to Index </a>"
-        else:
-            return render_template("index.html", form=form)
-    except:
-        return render_template('index.html', form=form)
+    if form.validate_on_submit():
+        file = form.file.data # First grab the file
+        print(file.filename) #just to demonstrate
+        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)),application.config['UPLOAD_FOLDER'],secure_filename(file.filename))) # Then save the file
+        #Process file.
+        path = "Static/Files/"+file.filename
+        print(path)
+        convertDoc(path.replace(" ", "_"), ".docx")
+        outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
+        print(outpath)
+        return send_file(outpath.replace(" ","_"))
+        #return "File has been uploaded. <a href='/'>Return to Index </a>"
+    return render_template("index.html", form=form)
     
     
 @application.route("/login", methods=["GET", "POST"])
@@ -65,6 +61,7 @@ def login():
     #Forget any user_id
     
     session.clear()
+    print("Cleared session.")
     
     #User reached route by posting (submitting the login form):
     if request.method == "POST":
@@ -137,7 +134,8 @@ def register():
             
 def apology(message):
     flash(message)
-    return redirect("/")
+    print(message)
+    return render_template("login.html")
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0', debug=True, port=8080)
