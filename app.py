@@ -24,14 +24,13 @@ Session(application)
 con = sqlite3.connect("register.db", check_same_thread=False)
 cur = con.cursor()
 
+def login_required(func):
+    def secure_function():
+        if "user_name" not in session:
+            return redirect("/login")
+        return func()
+    return secure_function
 
-#Login Manager
-login_manager = LoginManager()
-login_manager.login_view = "/login"
-login_manager.init_app(app)
-@login_manager.user_loader
-def load_user(user_id):
-    return User.get(user_name)
 
 class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
@@ -85,6 +84,7 @@ def login():
             for passwor_data in passworddata:
                 if sha256_crypt.verify(password, passwor_data):
                     session["log"]=True
+                    session["logged_in"]=True
                     session["user_name"] = username
                     print("Logged in.")
                     flash("You are now logged in!")
