@@ -35,6 +35,10 @@ db = scoped_session(sessionmaker(bind=engine))
 if not engine.has_table("users"):
     print("Doesn't have users table!")
     #TODO replace this with a SQL statement that creates the users table.
+    db.execute("""CREATE TABLE register.users(
+        username STRING PRIMARY KEY NOT NULL,
+        password STRING NOT NULL
+    );""")
     #TODO then check that this actually creates a db file in the proper location in the filesystem.
 
 
