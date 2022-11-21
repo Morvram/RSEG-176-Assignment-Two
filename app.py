@@ -24,21 +24,13 @@ Session(application)
 con = sqlite3.connect("register.db", check_same_thread=False)
 cur = con.cursor()
 
-def login_required(func):
-    def secure_function():
-        if "user_name" not in session:
-            return redirect("/login")
-        return func()
-    return secure_function
-
-
 class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Upload File")
     
 
 @application.route('/', methods=['GET',"POST"])
-@login_required
+#@login_required
 def home():
     if request.method == "POST":
         form = UploadFileForm()
