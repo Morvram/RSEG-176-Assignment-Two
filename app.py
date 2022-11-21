@@ -31,28 +31,30 @@ login_manager.login_view = "/login"
 login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return User.get(user_name)
 
 class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Upload File")
+    
 
 @application.route('/', methods=['GET',"POST"])
 @login_required
 def home():
-    form = UploadFileForm()
-    if form.validate_on_submit():
-        file = form.file.data # First grab the file
-        print(file.filename) #just to demonstrate
-        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)),application.config['UPLOAD_FOLDER'],secure_filename(file.filename))) # Then save the file
-        #Process file.
-        path = "Static/Files/"+file.filename
-        print(path)
-        convertDoc(path.replace(" ", "_"), ".docx")
-        outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
-        print(outpath)
-        return send_file(outpath.replace(" ","_"))
-        #return "File has been uploaded. <a href='/'>Return to Index </a>"
+    if request.method == "POST":
+        form = UploadFileForm()
+        if form.validate_on_submit():
+            file = form.file.data # First grab the file
+            print(file.filename) #just to demonstrate
+            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)),application.config['UPLOAD_FOLDER'],secure_filename(file.filename))) # Then save the file
+            #Process file.
+            path = "Static/Files/"+file.filename
+            print(path)
+            convertDoc(path.replace(" ", "_"), ".docx")
+            outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
+            print(outpath)
+            return send_file(outpath.replace(" ","_"))
+            #return "File has been uploaded. <a href='/'>Return to Index </a>"
     return render_template("index.html", form=form)
     
     
@@ -83,6 +85,7 @@ def login():
             for passwor_data in passworddata:
                 if sha256_crypt.verify(password, passwor_data):
                     session["log"]=True
+                    session["user_name"] = username
                     print("Logged in.")
                     flash("You are now logged in!")
                     #TODO make it so that @login_required KNOWS you are logged in.
