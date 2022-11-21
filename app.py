@@ -26,7 +26,7 @@ Session(application)
 
 #application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite"
 #engine = create_engine("mysql+pymysql://" + open("userpass.txt", "r").readlines()[0] + "@18.212.177.201:8080//register")
-engine = create_engine("sqlite:///" + os.getcwd() + "/register.db", echo=True)
+engine = create_engine("".join(["sqlite+pysqlite:///", os.getcwd(), "/register"]), echo=True)
 db = scoped_session(sessionmaker(bind=engine))
 #db = SQLAlchemy(app)
 
