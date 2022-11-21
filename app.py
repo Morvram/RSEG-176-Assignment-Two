@@ -25,31 +25,17 @@ Session(application)
 
 
 #application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite"
-engine = create_engine("mysql+pymysql://" + open("userpass.txt", "r").readlines()[0] + "@localhost/register")
+#engine = create_engine("mysql+pymysql://" + open("userpass.txt", "r").readlines()[0] + "@18.212.177.201:8080//register")
+engine = create_engine("sqlite:///" + os.getcwd() + "/register.db", echo=True)
+db = scoped_session(sessionmaker(bind=engine))
+#db = SQLAlchemy(app)
 
-db = SQLAlchemy(app)
 
-
-#TODO create User class (https://realpython.com/using-flask-login-for-user-management-with-flask/)
-class User(db.Model):
-    __tablename__ = 'user'
-    
-    user = db.Column(db.String, primary_key=True)
-    password = db.Column(db.String)
-    authentication = db.Column(db.Boolean, default=False)
-    
-    def is_active(self):
-        return True
-        
-    def get_id(self):
-        return self.user
-        
-    def is_authenticated(self):
-        return self.authentication
-    
-    def is_anonymous(self):
-        return False
-
+#Create users table in database.
+if not engine.has_table("users"):
+    print("Doesn't have users table!")
+    #TODO replace this with a SQL statement that creates the users table.
+    #TODO then check that this actually creates a db file in the proper location in the filesystem.
 
 
 #Login Manager
@@ -91,31 +77,56 @@ def login():
     
     #User reached route by posting (submitting the login form):
     if request.method == "POST":
+    
+        username = request.form.get("username")
+        password = request.form.get("password")
         
-        #Using request form input to generate user
+        usernamedata=db.execute("SELECT username FROM users WHERE username=:username",{"username":username}).fetchone()
+        passworddata=db.execute("SELECT password FROM users WHERE username=:username",{"username":username}).fetchone()
         
-        #Ensure username and password were submitted, and protect from SQL injection attacks.
-        if not request.form.get("username"):
-            return apology("Must provide username.")
-        if not request.form.get("password"):
-            return apology("Must provide password.")
-        if "'" in request.form.get("username") or ";" in request.form.get("username") or "'" in request.form.get("password") or ";" in request.form.get("password"):
-            return apology("No SQL injection, please!")
-            
-        user = User.objects(name=username, password=password).first()
-        
-        if user:
-            login_user(user)
-            return redirect("/")
+        if usernamedata is None:
+            flash("No username", "danger")
+            return render_template("login.html")
         else:
-            return apology("Login not successful.")
-        
-
-    else:
-        return render_template("login.html")
+            for passwor_data in passworddata:
+                if hsa256_crypt.verify(password, passwor_data):
+                    session["log"]=True
+                    
+                    flash("You are now logged in!")
+                else:
+                    flash("Incorrect password", "danger")
+                    return render_template("login.html")
+    return render_template("login.html")
  
 
-#TODO create register method which creates an account and stores its User object in db. 
+#create register method which creates an account and stores its User object in db. 
+@app.route("/register",methods=['POST','GET'])
+def register():
+    if request.method=="POST":
+        name=request.form.get("name")
+        username=request.form.get("username")
+        password=request.form.get("password")
+        confirm=request.form.get("confirm")
+        secure_password=sha256_crypt.encrypt(str(password))
+        
+        usernamedata=db.execute("SELECT username FROM users WHERE username=:username",{"username":username}).fetchone()
+        #usernamedata=str(usernamedata)
+        if usernamedata==None:
+            if password==confirm:
+                db.execute("INSERT INTO users(name,username,password) VALUES(:name,:username,:password)",
+        {"name":name,"username":username,"password":secure_password})
+                db.commit()
+                flash("You are registered and can now login","success")
+                return redirect(url_for('login'))
+            else:
+                flash("password does not match","danger")
+                return render_template('register.html')
+        else:
+            flash("user already existed, please login or contact admin","danger")
+            return redirect(url_for('login'))
+        
+    return render_template('register.html')
+
             
 def apology(message):
     flash(message)
