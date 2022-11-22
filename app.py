@@ -36,17 +36,27 @@ def home():
     except: #session['log'] doesn't exist.
         return apology("Please log in.")
     if request.method == "POST":
+        print("Request method is POST.")
         form = UploadFileForm()
+        print("form is UploadFileForm().")
         if form.validate_on_submit():
+            print("Grabbing file...")
             file = form.file.data # First grab the file
+            print("Grabbed file.")
             print(file.filename) #just to demonstrate
+            print("Saving file...")
             file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)),application.config['UPLOAD_FOLDER'],secure_filename(file.filename))) # Then save the file
+            print("Saved file.")
             #Process file.
+            print("Path:")
             path = "Static/Files/"+file.filename
             print(path)
+            print("Converting document...")
             convertDoc(path.replace(" ", "_"), ".docx")
+            print("Converted. Outpath:")
             outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
             print(outpath)
+            print("Sending file...")
             return send_file(outpath.replace(" ","_"))
             #return "File has been uploaded. <a href='/'>Return to Index </a>"
     return render_template("index.html", form=UploadFileForm())
