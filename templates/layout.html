@@ -12,7 +12,9 @@
 	</head>
 	
 <body>
-
+	{% for message in get_flashed_messages() %}
+		<h2>{{ message }}</h2>
+	{% endfor %}
 	<div id="loading"></div>
 	<div id="content">
 		<nav class="navbar navbar-expand" id="navbar">
