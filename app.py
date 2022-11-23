@@ -54,7 +54,7 @@ def home():
             print(path)
             #Add watermark
             print("Adding watermark...")
-            path = watermark.put_watermark(path, "watermark_"+path,"watermark.pdf")
+            path = watermark.put_watermark(path, path.replace(".pdf", "_watermark.pdf"),"watermark.pdf")
             print("Watermark added.")
             print("Converting document...")
             convertDoc(path.replace(" ", "_"), ".docx")
