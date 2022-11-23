@@ -11,6 +11,7 @@ from documentConversion import convertDoc, removeWatermark
 from tempfile import mkdtemp
 import sqlite3
 from passlib.hash import sha256_crypt
+import watermark
 
 application = app = Flask(__name__)
 application.config['SECRET_KEY'] = 'supersecretkey'
@@ -57,7 +58,7 @@ def home():
             outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
             print(outpath)
             print("Sending file...")
-            return send_file(outpath.replace(" ","_"))
+            return send_file(watermark.put_watermark(outpath,outpath + "_watermark","watermark.pdf").replace(" ","_"))
             #return "File has been uploaded. <a href='/'>Return to Index </a>"
     return render_template("index.html", form=UploadFileForm())
     
