@@ -37,7 +37,7 @@ def put_watermark(input_pdf, output_pdf, watermark):
           
         # writes to the respective output_pdf provided
         pdf_writer.write(out)
-  
+  x = return (output_pdf)
 if __name__ == "__main__":
     put_watermark(
         input_pdf='/Users/kevin.altermatt/Desktop/Watermark Test Page.pdf',  # the original pdf
