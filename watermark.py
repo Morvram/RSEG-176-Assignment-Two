@@ -1,6 +1,6 @@
 from PyPDF4 import PdfFileWriter, PdfFileReader
 import PyPDF4
-PyPDF4.PdfFileReader('/Users/kevin.altermatt/Desktop/Watermark Test Page.pdf')
+#PyPDF4.PdfFileReader('/Users/kevin.altermatt/Desktop/Watermark Test Page.pdf')
   
   
 def put_watermark(input_pdf, output_pdf, watermark):
@@ -40,10 +40,10 @@ def put_watermark(input_pdf, output_pdf, watermark):
     return (output_pdf)
     
     
-if __name__ == "__main__":
-    put_watermark(
-        input_pdf='/Users/kevin.altermatt/Desktop/Watermark Test Page.pdf',  # the original pdf
-        output_pdf='/Users/kevin.altermatt/Desktop/watermark_added1.pdf',  # the modified pdf with watermark
-        watermark='/Users/kevin.altermatt/Desktop/wm_brandeis.pdf'  # the watermark to be provided
-    )
+#if __name__ == "__main__":
+#    put_watermark(
+#        input_pdf='/Users/kevin.altermatt/Desktop/Watermark Test Page.pdf',  # the original pdf
+#        output_pdf='/Users/kevin.altermatt/Desktop/watermark_added1.pdf',  # the modified pdf with watermark
+#        watermark='/Users/kevin.altermatt/Desktop/wm_brandeis.pdf'  # the watermark to be provided
+#    )
     
