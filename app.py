@@ -52,13 +52,17 @@ def home():
             print("Path:")
             path = "Static/Files/"+file.filename
             print(path)
+            #Add watermark
+            print("Adding watermark...")
+            path = watermark.put_watermark(path, path+"_watermark","watermark.pdf")
+            print("Watermark added.")
             print("Converting document...")
             convertDoc(path.replace(" ", "_"), ".docx")
             print("Converted. Outpath:")
             outpath = path.replace(".pdf", ".docx").replace(".PDF", ".docx") #by default, we are only converting PDF to DocX #the second replace() function is for case insensitivity.
             print(outpath)
             print("Sending file...")
-            return send_file(watermark.put_watermark(outpath,outpath + "_watermark","watermark.pdf").replace(" ","_"))
+            return send_file(outpath.replace(" ","_"))
             #return "File has been uploaded. <a href='/'>Return to Index </a>"
     return render_template("index.html", form=UploadFileForm())
     
